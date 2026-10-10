@@ -1,0 +1,32 @@
+{
+  "name": "hold",
+  "version": "1.0.0",
+  "description": "Calculate approximate Moon positions for a geographic location and time.",
+  "main": "./dist/moon.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli.js",
+    "test": "vitest run tests",
+    "typecheck": "tsc -p tsconfig.test.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "vitest": "^5.0.0",
+    "typescript": "^7.0.2"
+  },
+  "types": "./dist/moon.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/moon.d.ts",
+      "import": "./dist/moon.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}
