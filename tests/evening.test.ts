@@ -59,4 +59,16 @@ describe('multi-day forecast', () => {
     it.each(['', '0', '-1', '1.5', '7days', 'Infinity', '366'])('rejects invalid day count %j', value => {
         expect(() => parseForecastDays(value)).toThrow(/FORECAST_DAYS/);
     });
+
+    it.each([0, -1, 1.5, 366, NaN])('rejects invalid day count argument %s', days => {
+        expect(() => formatEveningForecast(budapest, new Date('2026-09-16T12:00:00Z'), days))
+            .toThrow(/FORECAST_DAYS/);
+    });
+
+    it('rejects invalid coordinates and dates like the position API', () => {
+        const now = new Date('2026-09-16T12:00:00Z');
+        expect(() => formatEveningForecast({ latitude: 91, longitude: 19 }, now)).toThrow(/Latitude/);
+        expect(() => formatEveningTable({ latitude: 47.5, longitude: 181 }, now)).toThrow(/Longitude/);
+        expect(() => formatEveningTable(budapest, new Date('invalid'))).toThrow(/Date must be valid/);
+    });
 });

@@ -1,10 +1,13 @@
 import type { MoonPosition } from './types.js';
+import { normalizeDegrees } from './angle.js';
 
 const DIRECTIONS = ['észak', 'északkelet', 'kelet', 'délkelet', 'dél', 'délnyugat', 'nyugat', 'északnyugat'] as const;
 
 export function directionLabel(azimuth: number): string {
-    const normalized = ((azimuth % 360) + 360) % 360;
-    return DIRECTIONS[Math.round(normalized / 45) % 8]!;
+    const index = Math.round(normalizeDegrees(azimuth) / 45) % DIRECTIONS.length;
+    const label = DIRECTIONS[index];
+    if (label === undefined) throw new Error(`No compass direction for azimuth ${azimuth}.`);
+    return label;
 }
 
 export function altitudeLabel(altitude: number): string {

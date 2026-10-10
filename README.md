@@ -77,7 +77,9 @@ Négysoros szöveget készít. Az irányszöget, magasságot és távolságot k�
 
 ```text
 src/
-  moon.ts       Számítás, bemenetellenőrzés és publikus exportok
+  moon.ts       Pozíciószámítás és publikus exportok
+  validation.ts Koordináták és dátum bemenetellenőrzése
+  angle.ts      Szögnormalizálás [0, 360) tartományra
   types.ts      Koordináták és eredmények típusai
   format.ts     Az eredmény szöveges formázása
   phase.ts      Megvilágítottság és holdfázis számítása
@@ -86,6 +88,7 @@ src/
 tests/
   moon.test.ts  A számítás és formázás tesztjei
   evening.test.ts  Az esti táblázat és a helyi dátum tesztjei
+  phase.test.ts    A megvilágítottság és holdfázis tesztjei
 ```
 
 A `dist/` a fordítás kimenete. A generált JavaScript-fájlok nem tartoznak a források közé.

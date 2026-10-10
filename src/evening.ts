@@ -1,9 +1,13 @@
 import { calculateMoonPhase } from './phase.js';
 import { calculateMoonPosition } from './moon.js';
 import { altitudeLabel, directionLabel } from './format.js';
+import { assertValidCoordinates, assertValidDate } from './validation.js';
 import type { Coordinates } from './types.js';
 
 const TIME_ZONE = 'Europe/Budapest';
+const DEFAULT_FORECAST_DAYS = 7;
+const MAX_FORECAST_DAYS = 365;
+const TABLE_HEADER = ['Időpont', 'Égtáj', 'Azimut', 'Magasság', 'Elhelyezkedés', 'Megvilágítottság', 'Holdfázis', 'Változás'] as const;
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 const RAD = Math.PI / 180;
@@ -16,7 +20,11 @@ const timeFormatter = new Intl.DateTimeFormat('hu-HU', {
 
 function localDate(date: Date): string {
     const parts = dateFormatter.formatToParts(date);
-    const part = (type: string) => parts.find(value => value.type === type)!.value;
+    const part = (type: Intl.DateTimeFormatPartTypes): string => {
+        const value = parts.find(candidate => candidate.type === type)?.value;
+        if (value === undefined) throw new Error(`Missing ${type} in formatted ${TIME_ZONE} date.`);
+        return value;
+    };
     return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
@@ -46,10 +54,9 @@ function sunsetOnDay(day: Date, { latitude, longitude }: Coordinates): Date | nu
 
 /** Today's evening in Budapest time, starting at sunset in one-hour steps. */
 export function formatEveningTable(coordinates: Coordinates, now: Date): string {
-    // Use the same input validation as the position calculator.
-    calculateMoonPosition(coordinates, now);
-    const today = localDate(now);
-    return formatDayTable(coordinates, today, 'Ma naplemente után');
+    assertValidCoordinates(coordinates);
+    assertValidDate(now);
+    return formatDayTable(coordinates, localDate(now), 'Ma naplemente után');
 }
 
 function formatDayTable(coordinates: Coordinates, today: string, label: string): string {
@@ -57,7 +64,7 @@ function formatDayTable(coordinates: Coordinates, today: string, label: string):
     const heading = `${label} – ${today} (${TIME_ZONE})`;
     if (!sunset) return `${heading}\nEzen a napon nincs naplemente.`;
 
-    const rows: string[][] = [['Időpont', 'Égtáj', 'Azimut', 'Magasság', 'Elhelyezkedés', 'Megvilágítottság', 'Holdfázis', 'Változás']];
+    const rows: string[][] = [];
     for (let timestamp = sunset.getTime(); localDate(new Date(timestamp)) === today; timestamp += HOUR) {
         const date = new Date(timestamp);
         const position = calculateMoonPosition(coordinates, date);
@@ -69,27 +76,43 @@ function formatDayTable(coordinates: Coordinates, today: string, label: string):
             `${phase.illumination.toFixed(1)}%`, phase.phase, phase.trend,
         ]);
     }
-    const widths = rows[0]!.map((_, column) => Math.max(...rows.map(row => row[column]!.length)));
-    const lines = rows.map(row => row.map((cell, column) => cell.padEnd(widths[column]!)).join(' | ').trimEnd());
+    return `${heading}\nNaplemente: kb. ${timeFormatter.format(sunset)}; óránként innen, éjfélig.\n\n${renderTable(TABLE_HEADER, rows)}`;
+}
+
+/** Left-aligned plain-text table with a separator line under the header. */
+function renderTable(header: readonly string[], rows: readonly (readonly string[])[]): string {
+    const allRows = [header, ...rows];
+    const widths = header.map((_, column) => Math.max(...allRows.map(row => row[column]?.length ?? 0)));
+    const lines = allRows.map(row =>
+        row.map((cell, column) => cell.padEnd(widths[column] ?? 0)).join(' | ').trimEnd());
     lines.splice(1, 0, widths.map(width => '-'.repeat(width)).join('-+-'));
-    return `${heading}\nNaplemente: kb. ${timeFormatter.format(sunset)}; óránként innen, éjfélig.\n\n${lines.join('\n')}`;
+    return lines.join('\n');
 }
 
 /** Read the optional CLI setting; reject partial numbers and unreasonable output sizes. */
 export function parseForecastDays(value: string | undefined): number {
-    if (value === undefined) return 7;
+    if (value === undefined) return DEFAULT_FORECAST_DAYS;
     const trimmed = value.trim();
+    // Reject partial numbers such as "7days" or "1.5" that Number() would accept or coerce.
+    if (!/^\d+$/.test(trimmed)) throw forecastDaysError();
     const days = Number(trimmed);
-    if (!/^\d+$/.test(trimmed) || !Number.isInteger(days) || days < 1 || days > 365) {
-        throw new RangeError('A FORECAST_DAYS értéke 1 és 365 közötti egész szám legyen.');
-    }
+    assertValidForecastDays(days);
     return days;
 }
 
+function assertValidForecastDays(days: number): void {
+    if (!Number.isInteger(days) || days < 1 || days > MAX_FORECAST_DAYS) throw forecastDaysError();
+}
+
+function forecastDaysError(): RangeError {
+    return new RangeError(`A FORECAST_DAYS értéke 1 és ${MAX_FORECAST_DAYS} közötti egész szám legyen.`);
+}
+
 /** Consecutive Budapest calendar days, including today. */
-export function formatEveningForecast(coordinates: Coordinates, now: Date, days = 7): string {
-    calculateMoonPosition(coordinates, now);
-    parseForecastDays(String(days));
+export function formatEveningForecast(coordinates: Coordinates, now: Date, days = DEFAULT_FORECAST_DAYS): string {
+    assertValidCoordinates(coordinates);
+    assertValidDate(now);
+    assertValidForecastDays(days);
     // Advance calendar dates at UTC midnight, not local instants across DST changes.
     const firstDay = new Date(`${localDate(now)}T00:00:00Z`);
     return Array.from({ length: days }, (_, index) => {

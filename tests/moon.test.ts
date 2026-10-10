@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMoonPosition, formatMoonPosition } from '../src/moon.js';
 import type { Coordinates, MoonPosition } from '../src/moon.js';
+import { directionLabel } from '../src/format.js';
 
 describe('calculateMoonPosition', () => {
     it('should return valid moon position for given coordinates and date', () => {
@@ -140,5 +141,14 @@ describe('input validation and regression', () => {
         );
         expect(Number.isFinite(position.altitude)).toBe(true);
         expect(Number.isFinite(position.azimuth)).toBe(true);
+    });
+});
+
+describe('directionLabel', () => {
+    it.each([
+        [0, 'észak'], [22.4, 'észak'], [22.5, 'északkelet'], [315, 'északnyugat'],
+        [359.9, 'észak'], [-45, 'északnyugat'], [720 + 180, 'dél'],
+    ])('labels azimuth %s as %s', (azimuth, label) => {
+        expect(directionLabel(azimuth)).toBe(label);
     });
 });

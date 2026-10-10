@@ -4,6 +4,8 @@
  */
 
 import type { Coordinates, MoonPosition } from './types.js';
+import { normalizeDegrees } from './angle.js';
+import { assertValidCoordinates, assertValidDate } from './validation.js';
 export type { Coordinates, MoonPosition } from './types.js';
 export { formatMoonPosition } from './format.js';
 
@@ -30,20 +32,14 @@ function dateToJulianDate(date: Date): JulianDate {
 }
 
 /**
- * Normalize angle to [0, 360)
- */
-function normalizeAngle(angle: number): number {
-    return ((angle % 360) + 360) % 360;
-}
-
-/**
  * Calculate moon position using simplified astronomical algorithm
  */
 export function calculateMoonPosition(
     coordinates: Coordinates,
     date: Date
 ): MoonPosition {
-    validateInput(coordinates, date);
+    assertValidCoordinates(coordinates);
+    assertValidDate(date);
     const { latitude, longitude } = coordinates;
     const { jd, century } = dateToJulianDate(date);
 
@@ -54,10 +50,10 @@ export function calculateMoonPosition(
     const F = 93.272076 + 483202.0177 * century;
 
     // Reduce to [0, 360)
-    const L0Norm = normalizeAngle(L0);
-    const DNorm = normalizeAngle(D);
-    const MNorm = normalizeAngle(M);
-    const FNorm = normalizeAngle(F);
+    const L0Norm = normalizeDegrees(L0);
+    const DNorm = normalizeDegrees(D);
+    const MNorm = normalizeDegrees(M);
+    const FNorm = normalizeDegrees(F);
 
     // Moon's ecliptic longitude and latitude corrections
     const lambda = L0Norm +
@@ -104,7 +100,7 @@ export function calculateMoonPosition(
         0.00038793 * century * century;
 
     // Local hour angle
-    const ha = normalizeAngle(gmst + longitude - rightAscension);
+    const ha = normalizeDegrees(gmst + longitude - rightAscension);
 
     // Convert to horizontal coordinates
     const latRad = latitude * DEG2RAD;
@@ -117,7 +113,7 @@ export function calculateMoonPosition(
     ) * RAD2DEG;
 
     // atan2(east, north): 0° north, 90° east, 180° south, 270° west.
-    const azimuth = normalizeAngle(
+    const azimuth = normalizeDegrees(
         Math.atan2(
             -Math.sin(haRad),
             Math.tan(decRad) * Math.cos(latRad) - Math.sin(latRad) * Math.cos(haRad)
@@ -133,18 +129,6 @@ export function calculateMoonPosition(
         distance,
         parallax
     };
-}
-
-function validateInput({ latitude, longitude }: Coordinates, date: Date): void {
-    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
-        throw new RangeError('Latitude must be a finite number between -90 and 90.');
-    }
-    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
-        throw new RangeError('Longitude must be a finite number between -180 and 180.');
-    }
-    if (!(date instanceof Date) || !Number.isFinite(date.getTime())) {
-        throw new RangeError('Date must be valid.');
-    }
 }
 
 export { calculateMoonPhase, formatMoonPhase } from './phase.js';
