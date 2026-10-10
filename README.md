@@ -1,10 +1,14 @@
-# Hold – Hold-pozíció kalkulátor
+# Hold – Moon Position Calculator
 
-Kisméretű TypeScript-projekt, amely földrajzi koordináták és időpont alapján kiszámítja a Hold közelítő égi helyzetét és távolságát. Node.js alatt parancssorból futtatható, vagy más programba importálható. A számítás helyben történik, külső szolgáltatás és API-kulcs nélkül.
+**English** | [Magyar](README.hu.md)
 
-## Telepítés és futtatás
+A small TypeScript project that calculates the approximate sky position and distance of the Moon for a geographic location and time. It runs from the command line under Node.js or can be imported into another program. All calculations are done locally, with no external service or API key.
 
-Node.js 24 LTS és npm használata javasolt; az ellenőrzés Node.js 24 alatt történt.
+> "Hold" is Hungarian for "Moon". The command-line output and the descriptive labels are in Hungarian; English translations are given below.
+
+## Installation and usage
+
+Node.js 24 LTS and npm are recommended; the project has been verified on Node.js 24.
 
 ```bash
 npm ci
@@ -12,38 +16,56 @@ npm run build
 npm start
 ```
 
-A parancssori program Budapest koordinátáival (`47.5`, `19.0`) és az aktuális időponttal számol. Parancssori paramétereket jelenleg nem fogad; egyedi helyhez és időponthoz használd az alábbi API-t.
+The command-line program uses the coordinates of Budapest (`47.5`, `19.0`) and the current time. It does not accept command-line arguments yet; use the API below for a custom location and time.
 
-A kimenet a **Jelenleg** címkével kezdődik. Az aktuális helyzet négy sora: `Azimuth`, `Altitude`, `Distance`, `Parallax`. A szögek fokban, a távolság kilométerben jelenik meg. Az azimut mellett magyar égtáj, a magasság mellett szöveges leírás is szerepel, például:
+The output starts with the **Jelenleg** ("Currently") label. The current position is printed in four lines: `Azimuth`, `Altitude`, `Distance`, `Parallax`. Angles are shown in degrees, distance in kilometres. The azimuth is followed by a Hungarian compass direction and the altitude by a descriptive label, for example:
 
 ```text
 Azimuth: 315.00° (északnyugat)
 Altitude: 25.00° (közepesen magasan)
 ```
 
-Az égtáj a legközelebbi nyolc fő- és mellékégtáj egyike (0° észak, 90° kelet, 180° dél, 270° nyugat). A magasság leírása: 0° alatt „a horizont alatt”, 0°-nál „a horizonton”, 0–10° között „alacsonyan”, 10–45° között „közepesen magasan”, 45–80° között „magasan”, 80°-tól „a zenit közelében”. A 10°, 45° és 80° már a következő kategóriába tartozik.
+The compass direction is the nearest of the eight principal and intercardinal directions (0° north, 90° east, 180° south, 270° west):
 
-## Esti előrejelzés
+| Label | Meaning |
+| --- | --- |
+| `észak` / `északkelet` / `kelet` / `délkelet` | north / northeast / east / southeast |
+| `dél` / `délnyugat` / `nyugat` / `északnyugat` | south / southwest / west / northwest |
 
-Az aktuális adatok alatt alapértelmezetten **7 napi táblázat** jelenik meg: a mai nap és a következő 6 nap. Minden táblázat az adott nap naplementéjétől indul, egyórás lépésekben éjfélig. Például 18:56-os naplementénél a sorok 18:56, 19:56, …, 23:56 időpontokra készülnek. Az oszlopok: időpont, magyar égtáj, azimut fokban, magasság fokban, a magasság szöveges leírása, megvilágítottság, holdfázis és növekvő/fogyó jelzés. A horizont alatti sorok is megjelennek.
+Altitude labels:
 
-A napok száma a `FORECAST_DAYS` környezeti változóval állítható (1–365 közötti egész szám):
+| Altitude | Label | Meaning |
+| --- | --- | --- |
+| below 0° | `a horizont alatt` | below the horizon |
+| exactly 0° | `a horizonton` | on the horizon |
+| 0–10° | `alacsonyan` | low |
+| 10–45° | `közepesen magasan` | moderately high |
+| 45–80° | `magasan` | high |
+| 80° and above | `a zenit közelében` | near the zenith |
+
+The boundary values 10°, 45° and 80° belong to the higher category.
+
+## Evening forecast
+
+Below the current data, **7 daily tables** are shown by default: today and the following 6 days. Each table starts at that day's sunset and continues in one-hour steps until midnight. For example, with a sunset at 18:56 the rows are 18:56, 19:56, …, 23:56. The columns are: time, Hungarian compass direction, azimuth in degrees, altitude in degrees, altitude label, illumination, moon phase, and waxing/waning indicator. Rows below the horizon are included.
+
+The number of days can be set with the `FORECAST_DAYS` environment variable (an integer from 1 to 365):
 
 ```bash
-FORECAST_DAYS=3 npm start   # Ma és a következő két nap
-FORECAST_DAYS=1 npm start  # Csak ma
-npm start                 # Beállítatlan változó esetén 7 nap
+FORECAST_DAYS=3 npm start  # Today and the next two days
+FORECAST_DAYS=1 npm start  # Today only
+npm start                  # 7 days when the variable is not set
 ```
 
-Hibás vagy üres értéknél a program magyar hibaüzenettel, 1-es kilépési kóddal áll le. `.env` fájlt nem tölt be automatikusan; a változót a futtatási környezetben add meg.
+For an invalid or empty value the program exits with a Hungarian error message and exit code 1. It does not load `.env` files automatically; set the variable in the runtime environment.
 
-A „mai nap” és minden megjelenített időpont az `Europe/Budapest` időzónát követi, a nyári időszámítással együtt, a gép időzónájától függetlenül. Este futtatva is az egész esti táblázat látható.
+"Today" and all displayed times follow the `Europe/Budapest` time zone, including daylight saving time, regardless of the machine's time zone. When run in the evening, the whole evening table is still shown.
 
-A naplemente helyben számított becslés a [NOAA egyszerűsített naphelyzet-képletei](https://gml.noaa.gov/grad/solcalc/solareqns.PDF) alapján, 90,833°-os zenitszöggel. A helyi domborzat és a tényleges légköri viszonyok eltérést okozhatnak. A Hold táblázatos pozícióira ugyanazok a pontossági korlátok vonatkoznak, mint az aktuális adatokra.
+Sunset is a local estimate based on the [NOAA simplified solar position equations](https://gml.noaa.gov/grad/solcalc/solareqns.PDF), using a zenith angle of 90.833°. Local terrain and actual atmospheric conditions may cause deviations. The tabulated Moon positions are subject to the same accuracy limits as the current data.
 
-## Használat programból
+## Programmatic usage
 
-Fordítás után a projekt gyökerében létrehozott `.mjs` fájlból:
+After building, from an `.mjs` file in the project root:
 
 ```js
 import { calculateMoonPosition, formatMoonPosition } from './dist/moon.js';
@@ -56,67 +78,77 @@ const position = calculateMoonPosition(
 console.log(formatMoonPosition(position));
 ```
 
-TypeScriptben a `Coordinates` és `MoonPosition` típusok ugyanebből a modulból importálhatók az `import type` szintaxissal. A modul importálása önmagában nem végez számítást és nem ír a konzolra.
+In TypeScript, the `Coordinates` and `MoonPosition` types can be imported from the same module with `import type`. Importing the module does not perform any calculation or write to the console.
 
 ### `calculateMoonPosition(coordinates, date)`
 
-A szélesség (`latitude`) −90 és 90, a hosszúság (`longitude`) −180 és 180 közötti véges szám, fokban. A pozitív hosszúság keleti irányt jelöl. Az időpont érvényes JavaScript `Date`; egyértelmű időmegadáshoz használj időzónát, például UTC-t jelölő `Z` végződést. Hibás koordináta vagy érvénytelen dátum esetén a függvény `RangeError` hibát dob.
+`latitude` must be a finite number between −90 and 90 and `longitude` between −180 and 180, in degrees. Positive longitude means east. The time must be a valid JavaScript `Date`; to avoid ambiguity, include a time zone, such as the `Z` suffix for UTC. The function throws a `RangeError` for invalid coordinates or an invalid date.
 
-| Visszatérési mező | Jelentés | Mértékegység |
+| Return field | Meaning | Unit |
 | --- | --- | --- |
-| `azimuth` | Vízszintes irányszög, 0 ≤ érték < 360 | fok |
-| `altitude` | Horizonthoz viszonyított magasság; negatív értéknél a horizont alatt | fok |
-| `distance` | A számítás szerinti Föld–Hold távolság | km |
-| `parallax` | Külön kiszámított parallaxisérték | radián |
+| `azimuth` | Horizontal direction, 0 ≤ value < 360 | degrees |
+| `altitude` | Height above the horizon; negative values are below the horizon | degrees |
+| `distance` | Calculated Earth–Moon distance | km |
+| `parallax` | Separately calculated parallax value | radians |
 
 ### `formatMoonPosition(position)`
 
-Négysoros szöveget készít. Az irányszöget, magasságot és távolságot két, a fokra átváltott parallaxist négy tizedesjeggyel írja ki.
+Returns a four-line string. Azimuth, altitude and distance are printed with two decimal places, and the parallax, converted to degrees, with four.
 
-## Felépítés
+## Project structure
 
 ```text
 src/
-  moon.ts       Pozíciószámítás és publikus exportok
-  validation.ts Koordináták és dátum bemenetellenőrzése
-  angle.ts      Szögnormalizálás [0, 360) tartományra
-  types.ts      Koordináták és eredmények típusai
-  format.ts     Az eredmény szöveges formázása
-  phase.ts      Megvilágítottság és holdfázis számítása
-  cli.ts        Parancssori belépési pont, budapesti alapértékekkel
-  evening.ts    Naplemente becslése és az esti táblázat
+  moon.ts       Position calculation and public exports
+  validation.ts Input validation for coordinates and dates
+  angle.ts      Angle normalization to [0, 360)
+  types.ts      Coordinate and result types
+  format.ts     Text formatting of results
+  phase.ts      Illumination and moon phase calculation
+  cli.ts        Command-line entry point with Budapest defaults
+  evening.ts    Sunset estimate and the evening table
 tests/
-  moon.test.ts  A számítás és formázás tesztjei
-  evening.test.ts  Az esti táblázat és a helyi dátum tesztjei
-  phase.test.ts    A megvilágítottság és holdfázis tesztjei
+  moon.test.ts     Tests for calculation and formatting
+  evening.test.ts  Tests for the evening table and local dates
+  phase.test.ts    Tests for illumination and moon phase
 ```
 
-A `dist/` a fordítás kimenete. A generált JavaScript-fájlok nem tartoznak a források közé.
+`dist/` is the build output. The generated JavaScript files are not part of the sources.
 
-## Megvilágítottság és holdfázis
+## Illumination and moon phase
 
-A „Jelenleg” blokk és minden óránkénti táblázatsor mutatja a Holdkorong megvilágított részét százalékban, egy tizedesjeggyel, a magyar fázisnevet és a növekvő/fogyó jelzést. Ez nem azonos a tényleges láthatósággal: a Hold lehet a horizont alatt vagy felhők mögött.
+The "Jelenleg" block and every hourly table row show the illuminated fraction of the Moon's disk as a percentage with one decimal place, the Hungarian phase name, and the waxing/waning indicator (`növekvő` / `fogyó`). This is not the same as actual visibility: the Moon may be below the horizon or behind clouds.
 
-A fázis külön, a [Meeus 48.4 közelítés](https://www.celestialprogramming.com/meeus-illuminated_fraction_of_the_moon.html) alapján számolódik. Legfeljebb 1%-nál „újhold körül”, legalább 99%-nál „telihold körül”, 49–51% között „első negyed körül” vagy „utolsó negyed körül” jelenik meg. A többi állapot növekvő/fogyó holdsarló vagy domború hold. Ezek megjelenítési kategóriák, nem a fázisváltás pontos időpontjai.
+The phase is calculated separately, using the [Meeus 48.4 approximation](https://www.celestialprogramming.com/meeus-illuminated_fraction_of_the_moon.html):
 
-Az API-ból a `calculateMoonPhase(date)` függvény `{ illumination, phase, trend }` objektumot ad vissza; az `illumination` 0–100 közötti százalék. A `formatMoonPhase(result)` formázott szöveget ad. Mindkettő a `dist/moon.js` modulból exportált, a meglévő pozíció-API változatlan.
+| Illumination | Label | Meaning |
+| --- | --- | --- |
+| at most 1% | `újhold körül` | around new moon |
+| at least 99% | `telihold körül` | around full moon |
+| 49–51% | `első negyed körül` / `utolsó negyed körül` | around first / last quarter |
+| otherwise, below 50% | `növekvő holdsarló` / `fogyó holdsarló` | waxing / waning crescent |
+| otherwise, above 50% | `növekvő domború hold` / `fogyó domború hold` | waxing / waning gibbous |
 
-A fázistesztek négy [2024-es referenciaeseménynél](https://www.astropixels.com/almanac/almanac21/almanac2024gmt.html) ellenőrzik a megvilágítottságot egy százalékpontos toleranciával. Ez nem jelent minden dátumra érvényes pontossági garanciát.
+These are display categories, not the exact times of phase changes.
 
-## Fejlesztés
+In the API, `calculateMoonPhase(date)` returns an `{ illumination, phase, trend }` object; `illumination` is a percentage from 0 to 100. `formatMoonPhase(result)` returns a formatted string. Both are exported from `dist/moon.js`; the existing position API is unchanged.
+
+The phase tests check the illumination at four [2024 reference events](https://www.astropixels.com/almanac/almanac21/almanac2024gmt.html) with a tolerance of one percentage point. This is not an accuracy guarantee for every date.
+
+## Development
 
 ```bash
-npm run typecheck  # A forrás és a tesztek típusellenőrzése
-npm test           # Tesztek egyszeri futtatása
-npm run build      # JavaScript és típusdeklarációk előállítása
+npm run typecheck  # Type-check sources and tests
+npm test           # Run the tests once
+npm run build      # Emit JavaScript and type declarations
 ```
 
-Forrásmódosítás után az `npm start` előtt újra fordíts.
+Rebuild after changing the sources before running `npm start`.
 
-## Pontosság és korlátok
+## Accuracy and limitations
 
-A projekt az eredeti prototípus egyszerűsített csillagászati képleteit használja. A refaktorálás ezek tudományos helyességét nem hitelesíti. Az azimut korábbi 180°-os eltolását javítottuk az északtól mért irányhoz. A számítások pontossága referenciaadatokkal még ellenőrzendő; a kimenet ne szolgáljon precíz távcsővezérlés alapjául.
+The project uses the simplified astronomical formulas of the original prototype. The refactoring does not validate their scientific correctness. The previous 180° azimuth offset has been corrected to a north-based direction. The accuracy of the calculations still needs to be verified against reference data; do not use the output for precise telescope control.
 
-A parallaxis külön eredmény, nincs alkalmazva a visszaadott irányszögre és magasságra. A modell nem veszi figyelembe a légköri fénytörést, a megfigyelő tengerszint feletti magasságát vagy a tereptárgyak takarását. Holdkeltét és holdnyugtát nem számol.
+Parallax is a separate result and is not applied to the returned azimuth and altitude. The model does not account for atmospheric refraction, the observer's elevation, or obstruction by terrain. It does not calculate moonrise or moonset.
 
-A tesztek a bemenetellenőrzést, az eredmények tartományát, a formázást és a korábbi számítási eredmény megőrzését vizsgálják; független csillagászati referenciaadatokkal nem vetik össze az eredményt.
+The tests cover input validation, result ranges, formatting, and preservation of earlier calculation results; they do not compare results with independent astronomical reference data.
