@@ -63,6 +63,22 @@ For an invalid or empty value the program exits with a Hungarian error message a
 
 Sunset is a local estimate based on the [NOAA simplified solar position equations](https://gml.noaa.gov/grad/solcalc/solareqns.PDF), using a zenith angle of 90.833°. Local terrain and actual atmospheric conditions may cause deviations. The tabulated Moon positions are subject to the same accuracy limits as the current data.
 
+## Language
+
+The output language is chosen with the `HOLD_LANG` environment variable: `hu` (Hungarian, the default) or `en` (English). Any other value, including an empty one, makes the program exit with an error and exit code 1.
+
+```bash
+HOLD_LANG=en npm start                    # English
+HOLD_LANG=en FORECAST_DAYS=3 npm start    # English, three days
+npm start                                 # Hungarian
+```
+
+This covers all texts printed by the program: labels, compass directions, altitude descriptions, moon phase names, table headers, and the `FORECAST_DAYS` error message. The `Azimuth`, `Altitude`, `Distance` and `Parallax` line labels are English in both languages.
+
+From code, call `setLocale(Locale.English)` (both exported from `dist/moon.js`) before `formatMoonPosition` or `formatMoonPhase`. The language is module-wide state; the default is Hungarian.
+
+Translations live in `src/i18n/catalogs.ts`. Texts are written in code as `` t`Jelenleg` `` (a tagged template) or `translate(key)`; the text itself, in Hungarian, is the key. Interpolated values become `{0}`, `{1}`, … in the key and in the translation, so a translation may reorder them. A text without a translation is shown unchanged.
+
 ## Programmatic usage
 
 After building, from an `.mjs` file in the project root:
@@ -107,11 +123,16 @@ src/
   angle.ts        Angle normalization to [0, 360)
   types.ts        Coordinate and result types
   cli.ts          Command-line entry point with Budapest defaults
-  presentation/   Display layer: Hungarian labels and text output
+  presentation/   Display layer: labels and text output (translated)
     position.ts   Compass direction, altitude label, position text
     phase.ts      Phase text
     evening.ts    Evening forecast tables
+  i18n/           Translation: Locale, t`...` tagged template, catalogs
+    locale.ts     Supported languages and HOLD_LANG parsing
+    translate.ts  t`...`, translate(), current language
+    catalogs.ts   English translations (Hungarian is the source text)
 tests/
+  i18n.test.ts     Tests for translation and the English texts
   moon.test.ts     Tests for calculation and formatting
   evening.test.ts  Tests for the evening forecast data and tables
   phase.test.ts    Tests for illumination and moon phase

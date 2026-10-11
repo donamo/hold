@@ -1,5 +1,6 @@
 import type { MoonPosition } from '../types.js';
 import { normalizeDegrees } from '../angle.js';
+import { translate } from '../i18n/translate.js';
 
 export enum CompassDirection {
     North = 'észak',
@@ -43,11 +44,21 @@ export function altitudeLabel(altitude: number): AltitudeDescription {
     return AltitudeDescription.NearZenith;
 }
 
+/** Compass direction in the current language. */
+export function directionText(azimuth: number): string {
+    return translate(directionLabel(azimuth));
+}
+
+/** Altitude description in the current language. */
+export function altitudeText(altitude: number): string {
+    return translate(altitudeLabel(altitude));
+}
+
 /** Format angles in degrees and distance in kilometers. */
 export function formatMoonPosition(position: MoonPosition): string {
     return [
-        `Azimuth: ${position.azimuth.toFixed(2)}° (${directionLabel(position.azimuth)})`,
-        `Altitude: ${position.altitude.toFixed(2)}° (${altitudeLabel(position.altitude)})`,
+        `Azimuth: ${position.azimuth.toFixed(2)}° (${directionText(position.azimuth)})`,
+        `Altitude: ${position.altitude.toFixed(2)}° (${altitudeText(position.altitude)})`,
         `Distance: ${position.distance.toFixed(2)} km`,
         `Parallax: ${(position.parallax * 180 / Math.PI).toFixed(4)}°`,
     ].join('\n');

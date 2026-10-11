@@ -9,3 +9,5 @@ export { calculateMoonPosition } from './position.js';
 export { calculateMoonPhase, MoonPhaseName, MoonTrend } from './phase.js';
 export { formatMoonPosition } from './presentation/position.js';
 export { formatMoonPhase } from './presentation/phase.js';
+export { Locale } from './i18n/locale.js';
+export { setLocale } from './i18n/translate.js';

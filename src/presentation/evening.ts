@@ -1,9 +1,8 @@
 import { calculateEveningForecast, DEFAULT_FORECAST_DAYS, FORECAST_TIME_ZONE } from '../evening.js';
 import type { EveningForecastDay, EveningObservation } from '../evening.js';
 import type { Coordinates } from '../types.js';
-import { altitudeLabel, directionLabel } from './position.js';
-
-const TABLE_HEADER = ['Időpont', 'Égtáj', 'Azimut', 'Magasság', 'Elhelyezkedés', 'Megvilágítottság', 'Holdfázis', 'Változás'] as const;
+import { t, translate } from '../i18n/translate.js';
+import { altitudeText, directionText } from './position.js';
 
 enum ForecastDayHeading {
     Today = 'Ma naplemente után',
@@ -26,19 +25,25 @@ export function formatEveningForecast(coordinates: Coordinates, now: Date, days 
         .join('\n\n');
 }
 
+/** Built on demand, because the language is chosen after this module is loaded. */
+function tableHeader(): string[] {
+    return [t`Időpont`, t`Égtáj`, t`Azimut`, t`Magasság`, t`Elhelyezkedés`, t`Megvilágítottság`, t`Holdfázis`, t`Változás`];
+}
+
 function formatForecastDay({ date, sunset, observations }: EveningForecastDay, label: ForecastDayHeading): string {
-    const heading = `${label} – ${date} (${FORECAST_TIME_ZONE})`;
-    if (!sunset) return `${heading}\nEzen a napon nincs naplemente.`;
-    const table = renderTable(TABLE_HEADER, observations.map(formatObservationRow));
-    return `${heading}\nNaplemente: kb. ${timeFormatter.format(sunset)}; óránként innen, éjfélig.\n\n${table}`;
+    const heading = `${translate(label)} – ${date} (${FORECAST_TIME_ZONE})`;
+    if (!sunset) return `${heading}\n${t`Ezen a napon nincs naplemente.`}`;
+    const table = renderTable(tableHeader(), observations.map(formatObservationRow));
+    const sunsetLine = t`Naplemente: kb. ${timeFormatter.format(sunset)}; óránként innen, éjfélig.`;
+    return `${heading}\n${sunsetLine}\n\n${table}`;
 }
 
 function formatObservationRow({ time, position, phase }: EveningObservation): string[] {
     return [
-        timeFormatter.format(time), directionLabel(position.azimuth),
+        timeFormatter.format(time), directionText(position.azimuth),
         `${position.azimuth.toFixed(2)}°`, `${position.altitude.toFixed(2)}°`,
-        altitudeLabel(position.altitude),
-        `${phase.illumination.toFixed(1)}%`, phase.phase, phase.trend,
+        altitudeText(position.altitude),
+        `${phase.illumination.toFixed(1)}%`, translate(phase.phase), translate(phase.trend),
     ];
 }
 

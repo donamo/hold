@@ -43,6 +43,22 @@ A „mai nap” és minden megjelenített időpont az `Europe/Budapest` időzón
 
 A naplemente helyben számított becslés a [NOAA egyszerűsített naphelyzet-képletei](https://gml.noaa.gov/grad/solcalc/solareqns.PDF) alapján, 90,833°-os zenitszöggel. A helyi domborzat és a tényleges légköri viszonyok eltérést okozhatnak. A Hold táblázatos pozícióira ugyanazok a pontossági korlátok vonatkoznak, mint az aktuális adatokra.
 
+## Nyelv
+
+A kimenet nyelvét a `HOLD_LANG` környezeti változó adja meg: `hu` (magyar, ez az alapértelmezés) vagy `en` (angol). Bármely más érték, az üres is, hibaüzenettel és 1-es kilépési kóddal állítja le a programot.
+
+```bash
+HOLD_LANG=en npm start                    # Angol
+HOLD_LANG=en FORECAST_DAYS=3 npm start    # Angol, három nap
+npm start                                 # Magyar
+```
+
+Ez a program minden kiírt szövegére vonatkozik: feliratok, égtájak, magasságleírások, holdfázisnevek, táblázatfejlécek és a `FORECAST_DAYS` hibaüzenete. Az `Azimuth`, `Altitude`, `Distance` és `Parallax` sorfeliratok mindkét nyelven angolok.
+
+Programból a `formatMoonPosition` vagy a `formatMoonPhase` előtt hívd a `setLocale(Locale.English)` függvényt (mindkettő a `dist/moon.js` modulból exportált). A nyelv modulszintű állapot, az alapértelmezés a magyar.
+
+A fordítások a `src/i18n/catalogs.ts` fájlban vannak. A kódban a szövegek `` t`Jelenleg` `` (tagged template) vagy `translate(kulcs)` alakban szerepelnek; a kulcs maga a magyar szöveg. A beillesztett értékek a kulcsban és a fordításban is `{0}`, `{1}`, … jelölést kapnak, így a fordítás át is rendezheti őket. A fordítás nélküli szöveg változatlanul jelenik meg.
+
 ## Használat programból
 
 Fordítás után a projekt gyökerében létrehozott `.mjs` fájlból:
@@ -87,11 +103,16 @@ src/
   angle.ts        Szögnormalizálás [0, 360) tartományra
   types.ts        Koordináták és eredmények típusai
   cli.ts          Parancssori belépési pont, budapesti alapértékekkel
-  presentation/   Megjelenítési réteg: magyar címkék és szöveges kimenet
+  presentation/   Megjelenítési réteg: címkék és szöveges kimenet (fordítva)
     position.ts   Égtáj, magasságleírás, pozíció szövege
     phase.ts      Holdfázis szövege
     evening.ts    Az esti előrejelzés táblázatai
+  i18n/           Fordítás: Locale, t`...` tagged template, katalógusok
+    locale.ts     Támogatott nyelvek és a HOLD_LANG feldolgozása
+    translate.ts  t`...`, translate(), az aktuális nyelv
+    catalogs.ts   Angol fordítások (a magyar a forrásszöveg)
 tests/
+  i18n.test.ts     A fordítás és az angol szövegek tesztjei
   moon.test.ts     A számítás és formázás tesztjei
   evening.test.ts  Az esti előrejelzés adatainak és táblázatainak tesztjei
   phase.test.ts    A megvilágítottság és holdfázis tesztjei

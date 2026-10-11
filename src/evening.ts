@@ -1,6 +1,7 @@
 import { calculateMoonPhase } from './phase.js';
 import type { MoonPhase } from './phase.js';
 import { calculateMoonPosition } from './position.js';
+import { t } from './i18n/translate.js';
 import { assertValidCoordinates, assertValidDate } from './validation.js';
 import type { Coordinates, MoonPosition } from './types.js';
 
@@ -96,7 +97,7 @@ function assertValidForecastDays(days: number): void {
 }
 
 function forecastDaysError(): RangeError {
-    return new RangeError(`A FORECAST_DAYS értéke 1 és ${MAX_FORECAST_DAYS} közötti egész szám legyen.`);
+    return new RangeError(t`A FORECAST_DAYS értéke 1 és ${MAX_FORECAST_DAYS} közötti egész szám legyen.`);
 }
 
 /** Consecutive Budapest calendar days, including today. */
