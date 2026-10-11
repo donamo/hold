@@ -38,7 +38,3 @@ export function calculateMoonPhase(date: Date): MoonPhase {
     else phase = waxing ? 'növekvő domború hold' : 'fogyó domború hold';
     return { illumination, phase, trend };
 }
-
-export function formatMoonPhase(phase: MoonPhase): string {
-    return `${phase.illumination.toFixed(1)}% – ${phase.phase} (${phase.trend})`;
-}

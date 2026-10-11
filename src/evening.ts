@@ -1,28 +1,40 @@
 import { calculateMoonPhase } from './phase.js';
-import { calculateMoonPosition } from './moon.js';
-import { altitudeLabel, directionLabel } from './format.js';
+import type { MoonPhase } from './phase.js';
+import { calculateMoonPosition } from './position.js';
 import { assertValidCoordinates, assertValidDate } from './validation.js';
-import type { Coordinates } from './types.js';
+import type { Coordinates, MoonPosition } from './types.js';
 
-const TIME_ZONE = 'Europe/Budapest';
-const DEFAULT_FORECAST_DAYS = 7;
+/** Calendar days and evening hours are counted in this time zone. */
+export const FORECAST_TIME_ZONE = 'Europe/Budapest';
+export const DEFAULT_FORECAST_DAYS = 7;
 const MAX_FORECAST_DAYS = 365;
-const TABLE_HEADER = ['Időpont', 'Égtáj', 'Azimut', 'Magasság', 'Elhelyezkedés', 'Megvilágítottság', 'Holdfázis', 'Változás'] as const;
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
 const RAD = Math.PI / 180;
 const dateFormatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
+    timeZone: FORECAST_TIME_ZONE, year: 'numeric', month: '2-digit', day: '2-digit',
 });
-const timeFormatter = new Intl.DateTimeFormat('hu-HU', {
-    timeZone: TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-});
+
+export interface EveningObservation {
+    time: Date;
+    position: MoonPosition;
+    phase: MoonPhase;
+}
+
+export interface EveningForecastDay {
+    /** Calendar day in FORECAST_TIME_ZONE, formatted as YYYY-MM-DD. */
+    date: string;
+    /** Null when the sun does not set that day (polar day or night); observations are then empty. */
+    sunset: Date | null;
+    /** Hourly from sunset until local midnight. */
+    observations: EveningObservation[];
+}
 
 function localDate(date: Date): string {
     const parts = dateFormatter.formatToParts(date);
     const part = (type: Intl.DateTimeFormatPartTypes): string => {
         const value = parts.find(candidate => candidate.type === type)?.value;
-        if (value === undefined) throw new Error(`Missing ${type} in formatted ${TIME_ZONE} date.`);
+        if (value === undefined) throw new Error(`Missing ${type} in formatted ${FORECAST_TIME_ZONE} date.`);
         return value;
     };
     return `${part('year')}-${part('month')}-${part('day')}`;
@@ -52,41 +64,20 @@ function sunsetOnDay(day: Date, { latitude, longitude }: Coordinates): Date | nu
     return new Date(day.getTime() + minutes * 60_000);
 }
 
-/** Today's evening in Budapest time, starting at sunset in one-hour steps. */
-export function formatEveningTable(coordinates: Coordinates, now: Date): string {
-    assertValidCoordinates(coordinates);
-    assertValidDate(now);
-    return formatDayTable(coordinates, localDate(now), 'Ma naplemente után');
-}
-
-function formatDayTable(coordinates: Coordinates, today: string, label: string): string {
-    const sunset = sunsetOnDay(new Date(`${today}T00:00:00Z`), coordinates);
-    const heading = `${label} – ${today} (${TIME_ZONE})`;
-    if (!sunset) return `${heading}\nEzen a napon nincs naplemente.`;
-
-    const rows: string[][] = [];
-    for (let timestamp = sunset.getTime(); localDate(new Date(timestamp)) === today; timestamp += HOUR) {
-        const date = new Date(timestamp);
-        const position = calculateMoonPosition(coordinates, date);
-        const phase = calculateMoonPhase(date);
-        rows.push([
-            timeFormatter.format(date), directionLabel(position.azimuth),
-            `${position.azimuth.toFixed(2)}°`, `${position.altitude.toFixed(2)}°`,
-            altitudeLabel(position.altitude),
-            `${phase.illumination.toFixed(1)}%`, phase.phase, phase.trend,
-        ]);
+function calculateEveningDay(coordinates: Coordinates, date: string): EveningForecastDay {
+    const sunset = sunsetOnDay(new Date(`${date}T00:00:00Z`), coordinates);
+    const observations: EveningObservation[] = [];
+    if (sunset) {
+        for (let timestamp = sunset.getTime(); localDate(new Date(timestamp)) === date; timestamp += HOUR) {
+            const time = new Date(timestamp);
+            observations.push({
+                time,
+                position: calculateMoonPosition(coordinates, time),
+                phase: calculateMoonPhase(time),
+            });
+        }
     }
-    return `${heading}\nNaplemente: kb. ${timeFormatter.format(sunset)}; óránként innen, éjfélig.\n\n${renderTable(TABLE_HEADER, rows)}`;
-}
-
-/** Left-aligned plain-text table with a separator line under the header. */
-function renderTable(header: readonly string[], rows: readonly (readonly string[])[]): string {
-    const allRows = [header, ...rows];
-    const widths = header.map((_, column) => Math.max(...allRows.map(row => row[column]?.length ?? 0)));
-    const lines = allRows.map(row =>
-        row.map((cell, column) => cell.padEnd(widths[column] ?? 0)).join(' | ').trimEnd());
-    lines.splice(1, 0, widths.map(width => '-'.repeat(width)).join('-+-'));
-    return lines.join('\n');
+    return { date, sunset, observations };
 }
 
 /** Read the optional CLI setting; reject partial numbers and unreasonable output sizes. */
@@ -109,7 +100,9 @@ function forecastDaysError(): RangeError {
 }
 
 /** Consecutive Budapest calendar days, including today. */
-export function formatEveningForecast(coordinates: Coordinates, now: Date, days = DEFAULT_FORECAST_DAYS): string {
+export function calculateEveningForecast(
+    coordinates: Coordinates, now: Date, days = DEFAULT_FORECAST_DAYS,
+): EveningForecastDay[] {
     assertValidCoordinates(coordinates);
     assertValidDate(now);
     assertValidForecastDays(days);
@@ -117,6 +110,6 @@ export function formatEveningForecast(coordinates: Coordinates, now: Date, days 
     const firstDay = new Date(`${localDate(now)}T00:00:00Z`);
     return Array.from({ length: days }, (_, index) => {
         const day = new Date(firstDay.getTime() + index * DAY).toISOString().slice(0, 10);
-        return formatDayTable(coordinates, day, index === 0 ? 'Ma naplemente után' : 'Naplemente után');
-    }).join('\n\n');
+        return calculateEveningDay(coordinates, day);
+    });
 }

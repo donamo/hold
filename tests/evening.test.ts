@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { formatEveningTable, formatEveningForecast, parseForecastDays } from '../src/evening.js';
+import { calculateEveningForecast, parseForecastDays } from '../src/evening.js';
+import { formatEveningTable, formatEveningForecast } from '../src/presentation/evening.js';
 
 const budapest = { latitude: 47.5, longitude: 19 };
 
@@ -70,5 +71,25 @@ describe('multi-day forecast', () => {
         expect(() => formatEveningForecast({ latitude: 91, longitude: 19 }, now)).toThrow(/Latitude/);
         expect(() => formatEveningTable({ latitude: 47.5, longitude: 181 }, now)).toThrow(/Longitude/);
         expect(() => formatEveningTable(budapest, new Date('invalid'))).toThrow(/Date must be valid/);
+    });
+});
+
+describe('evening forecast data', () => {
+    it('returns hourly observations from sunset without any text formatting', () => {
+        const [day, ...rest] = calculateEveningForecast(budapest, new Date('2026-09-16T12:00:00Z'), 1);
+        expect(rest).toHaveLength(0);
+        expect(day?.date).toBe('2026-09-16');
+        expect(day?.sunset).toBeInstanceOf(Date);
+        const times = day?.observations.map(observation => observation.time.getTime()) ?? [];
+        expect(times[0]).toBe(day?.sunset?.getTime());
+        expect(times.slice(1).every((time, index) => time - (times[index] ?? Number.NaN) === 3_600_000)).toBe(true);
+        expect(day?.observations[0]?.position.distance).toBeGreaterThan(350_000);
+        expect(day?.observations[0]?.phase.illumination).toBeGreaterThanOrEqual(0);
+    });
+
+    it('reports a missing sunset explicitly during polar day', () => {
+        const [day] = calculateEveningForecast({ latitude: 80, longitude: 19 }, new Date('2026-06-21T12:00:00Z'), 1);
+        expect(day?.sunset).toBeNull();
+        expect(day?.observations).toEqual([]);
     });
 });

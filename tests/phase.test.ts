@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calculateMoonPhase, formatMoonPhase } from '../src/moon.js';
-import { formatEveningTable } from '../src/evening.js';
+import { formatEveningTable } from '../src/presentation/evening.js';
 
 // Reference events: Fred Espenak's 2024 GMT almanac.
 // https://www.astropixels.com/almanac/almanac21/almanac2024gmt.html

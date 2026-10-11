@@ -1,5 +1,5 @@
-import type { MoonPosition } from './types.js';
-import { normalizeDegrees } from './angle.js';
+import type { MoonPosition } from '../types.js';
+import { normalizeDegrees } from '../angle.js';
 
 const DIRECTIONS = ['észak', 'északkelet', 'kelet', 'délkelet', 'dél', 'délnyugat', 'nyugat', 'északnyugat'] as const;
 

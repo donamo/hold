@@ -99,17 +99,21 @@ Returns a four-line string. Azimuth, altitude and distance are printed with two 
 
 ```text
 src/
-  moon.ts       Position calculation and public exports
-  validation.ts Input validation for coordinates and dates
-  angle.ts      Angle normalization to [0, 360)
-  types.ts      Coordinate and result types
-  format.ts     Text formatting of results
-  phase.ts      Illumination and moon phase calculation
-  cli.ts        Command-line entry point with Budapest defaults
-  evening.ts    Sunset estimate and the evening table
+  moon.ts         Public entry point (re-exports the API)
+  position.ts     Moon position calculation
+  phase.ts        Illumination and moon phase calculation
+  evening.ts      Sunset estimate and evening forecast data
+  validation.ts   Input validation for coordinates and dates
+  angle.ts        Angle normalization to [0, 360)
+  types.ts        Coordinate and result types
+  cli.ts          Command-line entry point with Budapest defaults
+  presentation/   Display layer: Hungarian labels and text output
+    position.ts   Compass direction, altitude label, position text
+    phase.ts      Phase text
+    evening.ts    Evening forecast tables
 tests/
   moon.test.ts     Tests for calculation and formatting
-  evening.test.ts  Tests for the evening table and local dates
+  evening.test.ts  Tests for the evening forecast data and tables
   phase.test.ts    Tests for illumination and moon phase
 ```
 

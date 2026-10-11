@@ -79,17 +79,21 @@ Négysoros szöveget készít. Az irányszöget, magasságot és távolságot k�
 
 ```text
 src/
-  moon.ts       Pozíciószámítás és publikus exportok
-  validation.ts Koordináták és dátum bemenetellenőrzése
-  angle.ts      Szögnormalizálás [0, 360) tartományra
-  types.ts      Koordináták és eredmények típusai
-  format.ts     Az eredmény szöveges formázása
-  phase.ts      Megvilágítottság és holdfázis számítása
-  cli.ts        Parancssori belépési pont, budapesti alapértékekkel
-  evening.ts    Naplemente becslése és az esti táblázat
+  moon.ts         Publikus belépési pont (az API újraexportálása)
+  position.ts     A Hold pozíciójának számítása
+  phase.ts        Megvilágítottság és holdfázis számítása
+  evening.ts      Naplemente becslése és az esti előrejelzés adatai
+  validation.ts   Koordináták és dátum bemenetellenőrzése
+  angle.ts        Szögnormalizálás [0, 360) tartományra
+  types.ts        Koordináták és eredmények típusai
+  cli.ts          Parancssori belépési pont, budapesti alapértékekkel
+  presentation/   Megjelenítési réteg: magyar címkék és szöveges kimenet
+    position.ts   Égtáj, magasságleírás, pozíció szövege
+    phase.ts      Holdfázis szövege
+    evening.ts    Az esti előrejelzés táblázatai
 tests/
-  moon.test.ts  A számítás és formázás tesztjei
-  evening.test.ts  Az esti táblázat és a helyi dátum tesztjei
+  moon.test.ts     A számítás és formázás tesztjei
+  evening.test.ts  Az esti előrejelzés adatainak és táblázatainak tesztjei
   phase.test.ts    A megvilágítottság és holdfázis tesztjei
 ```
 

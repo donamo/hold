@@ -6,8 +6,6 @@
 import type { Coordinates, MoonPosition } from './types.js';
 import { normalizeDegrees } from './angle.js';
 import { assertValidCoordinates, assertValidDate } from './validation.js';
-export type { Coordinates, MoonPosition } from './types.js';
-export { formatMoonPosition } from './format.js';
 
 interface JulianDate {
     jd: number;
@@ -130,6 +128,3 @@ export function calculateMoonPosition(
         parallax
     };
 }
-
-export { calculateMoonPhase, formatMoonPhase } from './phase.js';
-export type { MoonPhase } from './phase.js';

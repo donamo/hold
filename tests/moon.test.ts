@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMoonPosition, formatMoonPosition } from '../src/moon.js';
 import type { Coordinates, MoonPosition } from '../src/moon.js';
-import { directionLabel } from '../src/format.js';
+import { directionLabel } from '../src/presentation/position.js';
 
 describe('calculateMoonPosition', () => {
     it('should return valid moon position for given coordinates and date', () => {
