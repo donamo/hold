@@ -1,5 +1,5 @@
-import { normalizeDegrees } from './angle.js';
-import { assertValidDate } from './validation.js';
+import { normalizeDegrees } from '../angle.js';
+import { assertValidDate } from '../validation.js';
 
 export enum MoonTrend {
     Waxing = 'növekvő',

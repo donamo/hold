@@ -3,9 +3,9 @@
  * Calculates the position of the moon in the sky for a given location and time.
  */
 
-import type { Coordinates, MoonPosition } from './types.js';
-import { normalizeDegrees } from './angle.js';
-import { assertValidCoordinates, assertValidDate } from './validation.js';
+import type { Coordinates, MoonPosition } from '../types.js';
+import { normalizeDegrees } from '../angle.js';
+import { assertValidCoordinates, assertValidDate } from '../validation.js';
 
 interface JulianDate {
     jd: number;

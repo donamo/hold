@@ -96,8 +96,9 @@ Négysoros szöveget készít. Az irányszöget, magasságot és távolságot k�
 ```text
 src/
   moon.ts         Publikus belépési pont (az API újraexportálása)
-  position.ts     A Hold pozíciójának számítása
-  phase.ts        Megvilágítottság és holdfázis számítása
+  moon/           A Hold számításai
+    position.ts   A Hold pozíciójának számítása
+    phase.ts      Megvilágítottság és holdfázis számítása
   evening.ts      Naplemente becslése és az esti előrejelzés adatai
   validation.ts   Koordináták és dátum bemenetellenőrzése
   angle.ts        Szögnormalizálás [0, 360) tartományra

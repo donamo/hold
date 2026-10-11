@@ -1,6 +1,6 @@
-import { calculateMoonPhase } from './phase.js';
-import type { MoonPhase } from './phase.js';
-import { calculateMoonPosition } from './position.js';
+import { calculateMoonPhase } from './moon/phase.js';
+import type { MoonPhase } from './moon/phase.js';
+import { calculateMoonPosition } from './moon/position.js';
 import { t } from './i18n/translate.js';
 import { assertValidCoordinates, assertValidDate } from './validation.js';
 import type { Coordinates, MoonPosition } from './types.js';

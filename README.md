@@ -116,8 +116,9 @@ Returns a four-line string. Azimuth, altitude and distance are printed with two 
 ```text
 src/
   moon.ts         Public entry point (re-exports the API)
-  position.ts     Moon position calculation
-  phase.ts        Illumination and moon phase calculation
+  moon/           Moon calculations
+    position.ts   Moon position calculation
+    phase.ts      Illumination and moon phase calculation
   evening.ts      Sunset estimate and evening forecast data
   validation.ts   Input validation for coordinates and dates
   angle.ts        Angle normalization to [0, 360)
