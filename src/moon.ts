@@ -6,6 +6,6 @@
 export type { Coordinates, MoonPosition } from './types.js';
 export type { MoonPhase } from './phase.js';
 export { calculateMoonPosition } from './position.js';
-export { calculateMoonPhase } from './phase.js';
+export { calculateMoonPhase, MoonPhaseName, MoonTrend } from './phase.js';
 export { formatMoonPosition } from './presentation/position.js';
 export { formatMoonPhase } from './presentation/phase.js';

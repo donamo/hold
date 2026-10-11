@@ -4,6 +4,12 @@ import type { Coordinates } from '../types.js';
 import { altitudeLabel, directionLabel } from './position.js';
 
 const TABLE_HEADER = ['Időpont', 'Égtáj', 'Azimut', 'Magasság', 'Elhelyezkedés', 'Megvilágítottság', 'Holdfázis', 'Változás'] as const;
+
+enum ForecastDayHeading {
+    Today = 'Ma naplemente után',
+    Following = 'Naplemente után',
+}
+
 const timeFormatter = new Intl.DateTimeFormat('hu-HU', {
     timeZone: FORECAST_TIME_ZONE, hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 });
@@ -16,11 +22,11 @@ export function formatEveningTable(coordinates: Coordinates, now: Date): string 
 /** Consecutive Budapest calendar days, including today. */
 export function formatEveningForecast(coordinates: Coordinates, now: Date, days = DEFAULT_FORECAST_DAYS): string {
     return calculateEveningForecast(coordinates, now, days)
-        .map((day, index) => formatForecastDay(day, index === 0 ? 'Ma naplemente után' : 'Naplemente után'))
+        .map((day, index) => formatForecastDay(day, index === 0 ? ForecastDayHeading.Today : ForecastDayHeading.Following))
         .join('\n\n');
 }
 
-function formatForecastDay({ date, sunset, observations }: EveningForecastDay, label: string): string {
+function formatForecastDay({ date, sunset, observations }: EveningForecastDay, label: ForecastDayHeading): string {
     const heading = `${label} – ${date} (${FORECAST_TIME_ZONE})`;
     if (!sunset) return `${heading}\nEzen a napon nincs naplemente.`;
     const table = renderTable(TABLE_HEADER, observations.map(formatObservationRow));

@@ -135,7 +135,7 @@ The phase is calculated separately, using the [Meeus 48.4 approximation](https:/
 
 These are display categories, not the exact times of phase changes.
 
-In the API, `calculateMoonPhase(date)` returns an `{ illumination, phase, trend }` object; `illumination` is a percentage from 0 to 100. `formatMoonPhase(result)` returns a formatted string. Both are exported from `dist/moon.js`; the existing position API is unchanged.
+In the API, `calculateMoonPhase(date)` returns an `{ illumination, phase, trend }` object; `illumination` is a percentage from 0 to 100, `phase` is a `MoonPhaseName` and `trend` a `MoonTrend` enum member (both exported from `dist/moon.js`; their values are the Hungarian display strings listed above). `formatMoonPhase(result)` returns a formatted string. Both are exported from `dist/moon.js`; the existing position API is unchanged.
 
 The phase tests check the illumination at four [2024 reference events](https://www.astropixels.com/almanac/almanac21/almanac2024gmt.html) with a tolerance of one percentage point. This is not an accuracy guarantee for every date.
 

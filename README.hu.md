@@ -105,7 +105,7 @@ A „Jelenleg” blokk és minden óránkénti táblázatsor mutatja a Holdkoron
 
 A fázis külön, a [Meeus 48.4 közelítés](https://www.celestialprogramming.com/meeus-illuminated_fraction_of_the_moon.html) alapján számolódik. Legfeljebb 1%-nál „újhold körül”, legalább 99%-nál „telihold körül”, 49–51% között „első negyed körül” vagy „utolsó negyed körül” jelenik meg. A többi állapot növekvő/fogyó holdsarló vagy domború hold. Ezek megjelenítési kategóriák, nem a fázisváltás pontos időpontjai.
 
-Az API-ból a `calculateMoonPhase(date)` függvény `{ illumination, phase, trend }` objektumot ad vissza; az `illumination` 0–100 közötti százalék. A `formatMoonPhase(result)` formázott szöveget ad. Mindkettő a `dist/moon.js` modulból exportált, a meglévő pozíció-API változatlan.
+Az API-ból a `calculateMoonPhase(date)` függvény `{ illumination, phase, trend }` objektumot ad vissza; az `illumination` 0–100 közötti százalék, a `phase` a `MoonPhaseName`, a `trend` a `MoonTrend` enum értéke (mindkettő a `dist/moon.js` modulból exportált; értékeik a fent felsorolt magyar megjelenítési szövegek). A `formatMoonPhase(result)` formázott szöveget ad. Mindkettő a `dist/moon.js` modulból exportált, a meglévő pozíció-API változatlan.
 
 A fázistesztek négy [2024-es referenciaeseménynél](https://www.astropixels.com/almanac/almanac21/almanac2024gmt.html) ellenőrzik a megvilágítottságot egy százalékpontos toleranciával. Ez nem jelent minden dátumra érvényes pontossági garanciát.
 

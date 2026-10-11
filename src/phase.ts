@@ -1,11 +1,28 @@
 import { normalizeDegrees } from './angle.js';
 import { assertValidDate } from './validation.js';
 
+export enum MoonTrend {
+    Waxing = 'növekvő',
+    Waning = 'fogyó',
+}
+
+/** Display categories around the main phases, not the exact times of phase changes. */
+export enum MoonPhaseName {
+    NewMoon = 'újhold körül',
+    WaxingCrescent = 'növekvő holdsarló',
+    FirstQuarter = 'első negyed körül',
+    WaxingGibbous = 'növekvő domború hold',
+    FullMoon = 'telihold körül',
+    WaningGibbous = 'fogyó domború hold',
+    LastQuarter = 'utolsó negyed körül',
+    WaningCrescent = 'fogyó holdsarló',
+}
+
 export interface MoonPhase {
     /** Illuminated fraction of the apparent lunar disk, from 0 to 100. */
     illumination: number;
-    phase: string;
-    trend: 'növekvő' | 'fogyó';
+    phase: MoonPhaseName;
+    trend: MoonTrend;
 }
 
 const RAD = Math.PI / 180;
@@ -29,12 +46,12 @@ export function calculateMoonPhase(date: Date): MoonPhase {
         - 0.11 * Math.sin(elongation);
     const illumination = (1 + Math.cos(phaseAngle * RAD)) * 50;
     const waxing = normalizeDegrees(180 - phaseAngle) < 180;
-    const trend = waxing ? 'növekvő' : 'fogyó';
-    let phase: string;
-    if (illumination <= 1) phase = 'újhold körül';
-    else if (illumination >= 99) phase = 'telihold körül';
-    else if (Math.abs(illumination - 50) <= 1) phase = waxing ? 'első negyed körül' : 'utolsó negyed körül';
-    else if (illumination < 50) phase = waxing ? 'növekvő holdsarló' : 'fogyó holdsarló';
-    else phase = waxing ? 'növekvő domború hold' : 'fogyó domború hold';
+    const trend = waxing ? MoonTrend.Waxing : MoonTrend.Waning;
+    let phase: MoonPhaseName;
+    if (illumination <= 1) phase = MoonPhaseName.NewMoon;
+    else if (illumination >= 99) phase = MoonPhaseName.FullMoon;
+    else if (Math.abs(illumination - 50) <= 1) phase = waxing ? MoonPhaseName.FirstQuarter : MoonPhaseName.LastQuarter;
+    else if (illumination < 50) phase = waxing ? MoonPhaseName.WaxingCrescent : MoonPhaseName.WaningCrescent;
+    else phase = waxing ? MoonPhaseName.WaxingGibbous : MoonPhaseName.WaningGibbous;
     return { illumination, phase, trend };
 }

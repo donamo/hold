@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMoonPosition, formatMoonPosition } from '../src/moon.js';
 import type { Coordinates, MoonPosition } from '../src/moon.js';
-import { directionLabel } from '../src/presentation/position.js';
+import { altitudeLabel, AltitudeDescription, CompassDirection, directionLabel } from '../src/presentation/position.js';
 
 describe('calculateMoonPosition', () => {
     it('should return valid moon position for given coordinates and date', () => {
@@ -146,9 +146,34 @@ describe('input validation and regression', () => {
 
 describe('directionLabel', () => {
     it.each([
-        [0, 'észak'], [22.4, 'észak'], [22.5, 'északkelet'], [315, 'északnyugat'],
-        [359.9, 'észak'], [-45, 'északnyugat'], [720 + 180, 'dél'],
-    ])('labels azimuth %s as %s', (azimuth, label) => {
-        expect(directionLabel(azimuth)).toBe(label);
+        [0, CompassDirection.North], [22.4, CompassDirection.North], [22.5, CompassDirection.NorthEast],
+        [90, CompassDirection.East], [135, CompassDirection.SouthEast], [180, CompassDirection.South],
+        [225, CompassDirection.SouthWest], [270, CompassDirection.West], [315, CompassDirection.NorthWest],
+        [359.9, CompassDirection.North], [-45, CompassDirection.NorthWest], [720 + 180, CompassDirection.South],
+    ])('labels azimuth %s as %s', (azimuth, direction) => {
+        expect(directionLabel(azimuth)).toBe(direction);
+    });
+
+    it('keeps the Hungarian display strings as runtime values', () => {
+        expect(Object.values(CompassDirection)).toEqual([
+            'észak', 'északkelet', 'kelet', 'délkelet', 'dél', 'délnyugat', 'nyugat', 'északnyugat',
+        ]);
+    });
+});
+
+describe('altitudeLabel', () => {
+    it.each([
+        [-0.01, AltitudeDescription.BelowHorizon], [0, AltitudeDescription.OnHorizon],
+        [9.99, AltitudeDescription.Low], [10, AltitudeDescription.Moderate],
+        [44.99, AltitudeDescription.Moderate], [45, AltitudeDescription.High],
+        [79.99, AltitudeDescription.High], [80, AltitudeDescription.NearZenith],
+    ])('describes altitude %s as %s', (altitude, description) => {
+        expect(altitudeLabel(altitude)).toBe(description);
+    });
+
+    it('keeps the Hungarian display strings as runtime values', () => {
+        expect(Object.values(AltitudeDescription)).toEqual([
+            'a horizont alatt', 'a horizonton', 'alacsonyan', 'közepesen magasan', 'magasan', 'a zenit közelében',
+        ]);
     });
 });

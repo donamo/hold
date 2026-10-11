@@ -1,22 +1,46 @@
 import type { MoonPosition } from '../types.js';
 import { normalizeDegrees } from '../angle.js';
 
-const DIRECTIONS = ['észak', 'északkelet', 'kelet', 'délkelet', 'dél', 'délnyugat', 'nyugat', 'északnyugat'] as const;
-
-export function directionLabel(azimuth: number): string {
-    const index = Math.round(normalizeDegrees(azimuth) / 45) % DIRECTIONS.length;
-    const label = DIRECTIONS[index];
-    if (label === undefined) throw new Error(`No compass direction for azimuth ${azimuth}.`);
-    return label;
+export enum CompassDirection {
+    North = 'észak',
+    NorthEast = 'északkelet',
+    East = 'kelet',
+    SouthEast = 'délkelet',
+    South = 'dél',
+    SouthWest = 'délnyugat',
+    West = 'nyugat',
+    NorthWest = 'északnyugat',
 }
 
-export function altitudeLabel(altitude: number): string {
-    if (altitude < 0) return 'a horizont alatt';
-    if (altitude === 0) return 'a horizonton';
-    if (altitude < 10) return 'alacsonyan';
-    if (altitude < 45) return 'közepesen magasan';
-    if (altitude < 80) return 'magasan';
-    return 'a zenit közelében';
+export enum AltitudeDescription {
+    BelowHorizon = 'a horizont alatt',
+    OnHorizon = 'a horizonton',
+    Low = 'alacsonyan',
+    Moderate = 'közepesen magasan',
+    High = 'magasan',
+    NearZenith = 'a zenit közelében',
+}
+
+/** Clockwise from north in 45° steps, indexed by the rounded azimuth sector. */
+const COMPASS_SECTORS = [
+    CompassDirection.North, CompassDirection.NorthEast, CompassDirection.East, CompassDirection.SouthEast,
+    CompassDirection.South, CompassDirection.SouthWest, CompassDirection.West, CompassDirection.NorthWest,
+] as const;
+
+export function directionLabel(azimuth: number): CompassDirection {
+    const index = Math.round(normalizeDegrees(azimuth) / 45) % COMPASS_SECTORS.length;
+    const direction = COMPASS_SECTORS[index];
+    if (direction === undefined) throw new Error(`No compass direction for azimuth ${azimuth}.`);
+    return direction;
+}
+
+export function altitudeLabel(altitude: number): AltitudeDescription {
+    if (altitude < 0) return AltitudeDescription.BelowHorizon;
+    if (altitude === 0) return AltitudeDescription.OnHorizon;
+    if (altitude < 10) return AltitudeDescription.Low;
+    if (altitude < 45) return AltitudeDescription.Moderate;
+    if (altitude < 80) return AltitudeDescription.High;
+    return AltitudeDescription.NearZenith;
 }
 
 /** Format angles in degrees and distance in kilometers. */
