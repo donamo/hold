@@ -7,7 +7,7 @@ export type Catalog = Readonly<Record<string, string>>;
  * The keys are the Hungarian source texts used in the code, so the Hungarian
  * catalog is empty: a missing entry falls back to the key itself.
  * Keys that come from enum values (moon phase, compass direction, altitude
- * description, forecast heading) must match those values exactly; the i18n
+ * description, weather condition, forecast heading) must match those values exactly; the i18n
  * tests check that every one of them has an English entry.
  */
 const english: Catalog = {
@@ -26,6 +26,7 @@ const english: Catalog = {
     'Elhelyezkedés': 'Position',
     'Holdfázis': 'Moon phase',
     'Változás': 'Trend',
+    'Időjárás': 'Weather',
 
     'növekvő': 'waxing',
     'fogyó': 'waning',
@@ -54,6 +55,18 @@ const english: Catalog = {
     'közepesen magasan': 'moderately high',
     'magasan': 'high',
     'a zenit közelében': 'near the zenith',
+
+    'csillagos égbolt': 'starry sky',
+    'részben felhős': 'partly cloudy',
+    'felhős': 'cloudy',
+    'ködös': 'foggy',
+    'szitálás': 'drizzle',
+    'esős': 'rainy',
+    'havazás': 'snowy',
+    'zivatar': 'thunderstorm',
+
+    'Az időjárás-előrejelzés nem érhető el ({0}), ezért az Időjárás oszlop kimarad.':
+        'The weather forecast is unavailable ({0}), so the Weather column is left out.',
 
     'A FORECAST_DAYS értéke 1 és {0} közötti egész szám legyen.': 'FORECAST_DAYS must be an integer between 1 and {0}.',
 };

@@ -2,7 +2,7 @@
 
 [English](README.md) | **Magyar**
 
-Kisméretű TypeScript-projekt, amely földrajzi koordináták és időpont alapján kiszámítja a Hold közelítő égi helyzetét és távolságát. Node.js alatt parancssorból futtatható, vagy más programba importálható. A számítás helyben történik, külső szolgáltatás és API-kulcs nélkül.
+Kisméretű TypeScript-projekt, amely földrajzi koordináták és időpont alapján kiszámítja a Hold közelítő égi helyzetét és távolságát. Node.js alatt parancssorból futtatható, vagy más programba importálható. A Hold és a naplemente számítása helyben történik; csak az esti előrejelzés opcionális időjárás-oszlopa használ külső szolgáltatást (az ingyenes [Open-Meteo](https://open-meteo.com/) API-t, API-kulcs nélkül).
 
 ## Telepítés és futtatás
 
@@ -27,7 +27,7 @@ Az égtáj a legközelebbi nyolc fő- és mellékégtáj egyike (0° észak, 90�
 
 ## Esti előrejelzés
 
-Az aktuális adatok alatt alapértelmezetten **7 napi táblázat** jelenik meg: a mai nap és a következő 6 nap. Minden táblázat az adott nap naplementéjétől indul, egyórás lépésekben éjfélig. Például 18:56-os naplementénél a sorok 18:56, 19:56, …, 23:56 időpontokra készülnek. Az oszlopok: időpont, magyar égtáj, azimut fokban, magasság fokban, a magasság szöveges leírása, megvilágítottság, holdfázis és növekvő/fogyó jelzés. A horizont alatti sorok is megjelennek.
+Az aktuális adatok alatt alapértelmezetten **7 napi táblázat** jelenik meg: a mai nap és a következő 6 nap. Minden táblázat az adott nap naplementéjétől indul, egyórás lépésekben éjfélig. Például 18:56-os naplementénél a sorok 18:56, 19:56, …, 23:56 időpontokra készülnek. Az oszlopok: időpont, magyar égtáj, azimut fokban, magasság fokban, a magasság szöveges leírása, megvilágítottság, holdfázis, növekvő/fogyó jelzés és a várható időjárás (lásd lent). A horizont alatti sorok is megjelennek.
 
 A napok száma a `FORECAST_DAYS` környezeti változóval állítható (1–365 közötti egész szám):
 
@@ -43,6 +43,21 @@ A „mai nap” és minden megjelenített időpont az `Europe/Budapest` időzón
 
 A naplemente helyben számított becslés a [NOAA egyszerűsített naphelyzet-képletei](https://gml.noaa.gov/grad/solcalc/solareqns.PDF) alapján, 90,833°-os zenitszöggel. A helyi domborzat és a tényleges légköri viszonyok eltérést okozhatnak. A Hold táblázatos pozícióira ugyanazok a pontossági korlátok vonatkoznak, mint az aktuális adatokra.
 
+## Időjárás
+
+Minden táblázat utolsó oszlopa az adott órára várható égboltot mutatja az ingyenes [Open-Meteo](https://open-meteo.com/) előrejelzési API alapján (API-kulcs nélkül, nem kereskedelmi használatra; az adatok [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) licencűek). Futásonként egy kérés megy ki, az óránkénti WMO-időjáráskódért, `Europe/Budapest` időzónában.
+
+| Felirat | Jelentés |
+| --- | --- |
+| `csillagos égbolt` | derült vagy főleg derült ég (a táblázatok csak a naplemente utáni időt fedik le) |
+| `részben felhős` / `felhős` | részben felhős / felhős |
+| `ködös` | köd |
+| `szitálás` / `esős` | szitálás / eső |
+| `havazás` | havazás |
+| `zivatar` | zivatar |
+
+Az előrejelzés legfeljebb 16 napot fed le; a későbbi napoknál, és azoknál az óráknál, amelyeket a szolgáltatás nem ad vissza, a cellában `–` áll. Az időjárás opcionális: ha a kérés sikertelen (nincs hálózat, 5 másodperces időtúllépés, HTTP-hiba, váratlan válasz), a program figyelmeztetést ír a hibakimenetre, az `Időjárás` oszlop kimarad, a kimenet többi része változatlan, a kilépési kód 0.
+
 ## Nyelv
 
 A kimenet nyelvét a `HOLD_LANG` környezeti változó adja meg: `hu` (magyar, ez az alapértelmezés) vagy `en` (angol). Bármely más érték, az üres is, hibaüzenettel és 1-es kilépési kóddal állítja le a programot.
@@ -53,7 +68,7 @@ HOLD_LANG=en FORECAST_DAYS=3 npm start    # Angol, három nap
 npm start                                 # Magyar
 ```
 
-Ez a program minden kiírt szövegére vonatkozik: feliratok, égtájak, magasságleírások, holdfázisnevek, táblázatfejlécek és a `FORECAST_DAYS` hibaüzenete. Az `Azimuth`, `Altitude`, `Distance` és `Parallax` sorfeliratok mindkét nyelven angolok.
+Ez a program minden kiírt szövegére vonatkozik: feliratok, égtájak, magasságleírások, holdfázisnevek, időjárás-leírások, táblázatfejlécek, az időjárás-figyelmeztetés és a `FORECAST_DAYS` hibaüzenete. Az `Azimuth`, `Altitude`, `Distance` és `Parallax` sorfeliratok mindkét nyelven angolok.
 
 Programból a `formatMoonPosition` vagy a `formatMoonPhase` előtt hívd a `setLocale(Locale.English)` függvényt (mindkettő a `dist/moon.js` modulból exportált). A nyelv modulszintű állapot, az alapértelmezés a magyar.
 
@@ -108,6 +123,9 @@ src/
     position.ts   Égtáj, magasságleírás, pozíció szövege
     phase.ts      Holdfázis szövege
     evening.ts    Az esti előrejelzés táblázatai
+  weather/        Időjárás-előrejelzés (Open-Meteo)
+    condition.ts  A WeatherCondition enum és a WMO-időjáráskódok leképezése
+    forecast.ts   Óránkénti előrejelzés lekérése, a válasz ellenőrzése, keresés óra szerint
   i18n/           Fordítás: Locale, t`...` tagged template, katalógusok
     locale.ts     Támogatott nyelvek és a HOLD_LANG feldolgozása
     translate.ts  t`...`, translate(), az aktuális nyelv
@@ -117,6 +135,7 @@ tests/
   moon.test.ts     A számítás és formázás tesztjei
   evening.test.ts  Az esti előrejelzés adatainak és táblázatainak tesztjei
   phase.test.ts    A megvilágítottság és holdfázis tesztjei
+  weather.test.ts  Az időjárás-leképezés, a kérés és a táblázatoszlop tesztjei
 ```
 
 A `dist/` a fordítás kimenete. A generált JavaScript-fájlok nem tartoznak a források közé.
@@ -147,4 +166,4 @@ A projekt az eredeti prototípus egyszerűsített csillagászati képleteit hasz
 
 A parallaxis külön eredmény, nincs alkalmazva a visszaadott irányszögre és magasságra. A modell nem veszi figyelembe a légköri fénytörést, a megfigyelő tengerszint feletti magasságát vagy a tereptárgyak takarását. Holdkeltét és holdnyugtát nem számol.
 
-A tesztek a bemenetellenőrzést, az eredmények tartományát, a formázást és a korábbi számítási eredmény megőrzését vizsgálják; független csillagászati referenciaadatokkal nem vetik össze az eredményt.
+A tesztek nem használnak hálózatot (az időjárás-kérést kiváltják). A tesztek a bemenetellenőrzést, az eredmények tartományát, a formázást és a korábbi számítási eredmény megőrzését vizsgálják; független csillagászati referenciaadatokkal nem vetik össze az eredményt.

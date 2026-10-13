@@ -5,6 +5,7 @@ import { DEFAULT_LOCALE, parseLocale } from '../src/i18n/locale.js';
 import { getLocale, t, translate, withLocale } from '../src/i18n/translate.js';
 import { formatEveningForecast } from '../src/presentation/evening.js';
 import { AltitudeDescription, CompassDirection } from '../src/presentation/position.js';
+import { WeatherCondition } from '../src/weather/condition.js';
 
 const budapest = { latitude: 47.5, longitude: 19 };
 const HUNGARIAN_LETTERS = /[áéíóöőúüű]/i;
@@ -76,6 +77,7 @@ describe('English catalog', () => {
         ...Object.values(MoonPhaseName),
         ...Object.values(CompassDirection),
         ...Object.values(AltitudeDescription),
+        ...Object.values(WeatherCondition),
     ])('has an English translation for the enum value "%s"', value => {
         const english = withLocale(Locale.English, () => translate(value));
         expect(english).not.toBe(value);

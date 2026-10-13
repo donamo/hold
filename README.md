@@ -2,7 +2,7 @@
 
 **English** | [Magyar](README.hu.md)
 
-A small TypeScript project that calculates the approximate sky position and distance of the Moon for a geographic location and time. It runs from the command line under Node.js or can be imported into another program. All calculations are done locally, with no external service or API key.
+A small TypeScript project that calculates the approximate sky position and distance of the Moon for a geographic location and time. It runs from the command line under Node.js or can be imported into another program. The Moon and sunset calculations are done locally; only the optional weather column in the evening forecast uses an external service (the free [Open-Meteo](https://open-meteo.com/) API, no API key).
 
 > "Hold" is Hungarian for "Moon". The command-line output and the descriptive labels are in Hungarian; English translations are given below.
 
@@ -47,7 +47,7 @@ The boundary values 10°, 45° and 80° belong to the higher category.
 
 ## Evening forecast
 
-Below the current data, **7 daily tables** are shown by default: today and the following 6 days. Each table starts at that day's sunset and continues in one-hour steps until midnight. For example, with a sunset at 18:56 the rows are 18:56, 19:56, …, 23:56. The columns are: time, Hungarian compass direction, azimuth in degrees, altitude in degrees, altitude label, illumination, moon phase, and waxing/waning indicator. Rows below the horizon are included.
+Below the current data, **7 daily tables** are shown by default: today and the following 6 days. Each table starts at that day's sunset and continues in one-hour steps until midnight. For example, with a sunset at 18:56 the rows are 18:56, 19:56, …, 23:56. The columns are: time, Hungarian compass direction, azimuth in degrees, altitude in degrees, altitude label, illumination, moon phase, waxing/waning indicator, and the expected weather (see below). Rows below the horizon are included.
 
 The number of days can be set with the `FORECAST_DAYS` environment variable (an integer from 1 to 365):
 
@@ -63,6 +63,21 @@ For an invalid or empty value the program exits with a Hungarian error message a
 
 Sunset is a local estimate based on the [NOAA simplified solar position equations](https://gml.noaa.gov/grad/solcalc/solareqns.PDF), using a zenith angle of 90.833°. Local terrain and actual atmospheric conditions may cause deviations. The tabulated Moon positions are subject to the same accuracy limits as the current data.
 
+## Weather
+
+The last column of each table shows the expected sky at that hour, taken from the free [Open-Meteo](https://open-meteo.com/) forecast API (no API key, non-commercial use; data licensed [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). One request is made per run, for the hourly WMO weather code in the `Europe/Budapest` time zone.
+
+| Label | Meaning |
+| --- | --- |
+| `csillagos égbolt` | starry sky (clear or mainly clear; the tables only cover the time after sunset) |
+| `részben felhős` / `felhős` | partly cloudy / cloudy |
+| `ködös` | foggy |
+| `szitálás` / `esős` | drizzle / rainy |
+| `havazás` | snowy |
+| `zivatar` | thunderstorm |
+
+The forecast covers at most 16 days; for later days, and for hours the service does not return, the cell shows `–`. The weather is optional: if the request fails (no network, timeout after 5 seconds, HTTP error, unexpected response), a warning is printed to the error output, the `Weather` column is left out, and the rest of the output is unchanged with exit code 0.
+
 ## Language
 
 The output language is chosen with the `HOLD_LANG` environment variable: `hu` (Hungarian, the default) or `en` (English). Any other value, including an empty one, makes the program exit with an error and exit code 1.
@@ -73,7 +88,7 @@ HOLD_LANG=en FORECAST_DAYS=3 npm start    # English, three days
 npm start                                 # Hungarian
 ```
 
-This covers all texts printed by the program: labels, compass directions, altitude descriptions, moon phase names, table headers, and the `FORECAST_DAYS` error message. The `Azimuth`, `Altitude`, `Distance` and `Parallax` line labels are English in both languages.
+This covers all texts printed by the program: labels, compass directions, altitude descriptions, moon phase names, weather descriptions, table headers, the weather warning, and the `FORECAST_DAYS` error message. The `Azimuth`, `Altitude`, `Distance` and `Parallax` line labels are English in both languages.
 
 From code, call `setLocale(Locale.English)` (both exported from `dist/moon.js`) before `formatMoonPosition` or `formatMoonPhase`. The language is module-wide state; the default is Hungarian.
 
@@ -128,6 +143,9 @@ src/
     position.ts   Compass direction, altitude label, position text
     phase.ts      Phase text
     evening.ts    Evening forecast tables
+  weather/        Weather forecast (Open-Meteo)
+    condition.ts  WeatherCondition enum and WMO weather code mapping
+    forecast.ts   Hourly forecast request, response validation, lookup by hour
   i18n/           Translation: Locale, t`...` tagged template, catalogs
     locale.ts     Supported languages and HOLD_LANG parsing
     translate.ts  t`...`, translate(), current language
@@ -137,6 +155,7 @@ tests/
   moon.test.ts     Tests for calculation and formatting
   evening.test.ts  Tests for the evening forecast data and tables
   phase.test.ts    Tests for illumination and moon phase
+  weather.test.ts  Tests for the weather mapping, request and table column
 ```
 
 `dist/` is the build output. The generated JavaScript files are not part of the sources.
@@ -177,4 +196,4 @@ The project uses the simplified astronomical formulas of the original prototype.
 
 Parallax is a separate result and is not applied to the returned azimuth and altitude. The model does not account for atmospheric refraction, the observer's elevation, or obstruction by terrain. It does not calculate moonrise or moonset.
 
-The tests cover input validation, result ranges, formatting, and preservation of earlier calculation results; they do not compare results with independent astronomical reference data.
+The tests do not use the network (the weather request is replaced with a stub). They cover input validation, result ranges, formatting, and preservation of earlier calculation results; they do not compare results with independent astronomical reference data.
